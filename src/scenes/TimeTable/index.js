@@ -59,13 +59,26 @@ const TimeTable = ({t, navigation, props}) => {
      duration: '0.5h',
      hour: '11am',
      title: 'Offline Lecture',
-     link: 'https://google.com',
+     link: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
      username: username,
      type: 'offline',
     },
    ],
    title: '2023-05-22',
   },
+  {
+    data: [
+     {
+      duration: '1h',
+      hour: '12pm',
+      title: 'Offline Lecture-2',
+      link: 'http://techslides.com/demos/sample-videos/small.mp4',
+      username: username,
+      type: 'offline',
+     },
+    ],
+    title: '2023-05-25',
+   },
   {
    data: [
     {
@@ -99,7 +112,7 @@ const TimeTable = ({t, navigation, props}) => {
 
  return (
   <View style={styles.container}>
-   {isLogin ? (
+   { !isLogin  ? (
     <>
      <View style={styles.header}>
       <View style={styles.header1}>
@@ -139,7 +152,7 @@ const TimeTable = ({t, navigation, props}) => {
     </>
    ) : (
     <View style={styles.container2}>
-     <Text>Welcome, Guest!</Text>
+     <Text>Welcome, Guests!</Text>
      <Text>Please Login to View Content!</Text>
      <Button
       title='Login'

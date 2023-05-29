@@ -1,70 +1,77 @@
-import React, {useContext, useState} from 'react';
-import {View, TextInput, Button, StyleSheet, AsyncStorage} from 'react-native';
-import TimeTable from '../TimeTable';
-import axios from 'axios';
-import {AuthContext} from '../../components/Context/AuthContext';
-const OfflineLecture = ({route, navigation}) => {
- const [username, setUsername] = useState('');
- const [password, setPassword] = useState('');
- const {setAuthToken} = useContext(AuthContext);
- const handleLogin = async () => {
-  try {
-   var params = new URLSearchParams();
-   const data = {username: username, password: password};
-   params.append('username', username);
-   params.append('password', password);
-   const response = await axios.post('http://192.168.1.4/nexus/auth.php', data);
-   if (response.data.token) {
-    try {
-     await AsyncStorage.setItem('username', username);
-     await AsyncStorage.setItem('authToken', response.data.token);
-     setAuthToken(response.data.token);
-     navigation.navigate('TimeTable', TimeTable);
-    } catch (error) {
-     console.error('Error storing encrypted credentials:', error);
-    }
-   }
-  } catch (error) {
-   // Handle login error
-   console.log(error);
-  }
- };
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity ,Button} from 'react-native';
+import Video from 'react-native-video';
+import Icon from 'react-native-vector-icons/FontAwesome';
+const OfflineLecture = (props) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isRotated, setIsRotated] = useState(false);
+  const [areSubtitlesVisible, setAreSubtitlesVisible] = useState(false);
+  const [volume, setVolume] = useState(1);
 
- return (
-  <View style={styles.container}>
-   <TextInput
-    style={styles.input}
-    placeholder='Username'
-    value={username}
-    onChangeText={setUsername}
-   />
-   <TextInput
-    style={styles.input}
-    placeholder='Password'
-    secureTextEntry
-    value={password}
-    onChangeText={setPassword}
-   />
-   <Button title='Login' onPress={handleLogin} />
-  </View>
- );
+  //console.log(props.route.params);
+  const togglePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+
+    
+  return (
+    <View style={styles.container}>
+      <Video
+        source={{ uri: props.route.params.joinLink }}
+        style={[styles.video, isRotated && styles.rotatedVideo]}
+        resizeMode="contain"
+        paused={!isPlaying}
+        repeat={true}
+        playInBackground={false}
+        playWhenInactive={false}
+        ignoreSilentSwitch="ignore"
+        volume={volume}
+        selectedAudioTrack={{
+          type: "title",
+          value: areSubtitlesVisible ? 1 : -1,
+        }}
+      />
+
+      <View style={styles.overlay}>
+        <TouchableOpacity onPress={togglePlayPause} style={styles.button}>
+          <Icon
+            name={isPlaying ? 'pause' : 'play'}
+            size={30}
+            color="#fff"
+          />
+        </TouchableOpacity>
+
+        
+      </View>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
- container: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  padding: 16,
- },
- input: {
-  width: '100%',
-  height: 40,
-  borderColor: 'gray',
-  borderWidth: 1,
-  marginBottom: 12,
-  paddingHorizontal: 8,
- },
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+
+  video: {
+    flex: 1,
+  },
+  rotatedVideo: {
+    transform: [{ rotate: '90deg' }],
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+  },
+  button: {
+    padding: 10,
+  },
+  rotatedIcon: {
+    transform: [{ rotate: '90deg' }],
+  },
 });
 
 export default OfflineLecture;

@@ -14,6 +14,8 @@ import {
  Image,
  Button,
  Platform,
+ ScrollView,
+ RefreshControl,
  AsyncStorage,
 } from 'react-native';
 import {Images} from 'app-assets';
@@ -30,6 +32,7 @@ import AgendaItem from '../mocks/AgendaItem';
 import {getTheme, themeColor, lightThemeColor} from '../mocks/theme';
 import {getStatusBarHeight} from 'app-common';
 import api from '../../utils/api';
+import axios from 'axios';
 const leftArrowIcon = require('../../assets/img/previous.png');
 const rightArrowIcon = require('../../assets/img/next.png');
 const ITEMS = agendaItems;
@@ -38,6 +41,31 @@ const TimeTable = ({t, navigation, props}) => {
  const {authenticated, loading, username} = useAuth();
  const {authToken} = useContext(AuthContext);
  const [isLogin, setLogin] = useState(authToken);
+ const [refreshing, setRefreshing] = useState(false);
+ const [refreshCount, setRefreshCount] = useState(0);
+
+ const fetchData = async () => {
+   // Replace this URL with your API endpoint
+    const url = 'https://jsonplaceholder.typicode.com/todos/1';
+
+   try {
+     const response = await axios.get(url);
+     console.log(response.data);
+   } catch (error) {
+     console.error(error);
+   }
+ };
+
+ const onRefresh = useCallback(() => {
+    console.log(refreshCount);
+   setRefreshing(true);
+   fetchData().then(() => {
+     setRefreshing(false);
+     setRefreshCount(refreshCount + 1);
+   });
+   
+ }, [refreshCount]);
+ 
  const onDateChanged = useCallback((date, updateSource) => {
   try {
    const response = api.get('/get_schedule.php', {
@@ -52,7 +80,7 @@ const TimeTable = ({t, navigation, props}) => {
   }
  }, []);
 
- const mock = [
+ const mock = refreshCount==2 ? [
   {
    data: [
     {
@@ -92,7 +120,19 @@ const TimeTable = ({t, navigation, props}) => {
    ],
    title: '2023-05-22',
   },
- ];
+ ]: [{
+    data: [
+     {
+      duration: '1h',
+      hour: '11am',
+      title: 'Offline Lecture before refresh',
+      link: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      username: username,
+      type: 'offline',
+     },
+    ],
+    title: '2023-05-24',
+   }];
  const marked = useRef(getMarkedDates());
  const theme = useRef(getTheme());
  const todayBtnTheme = useRef({
@@ -111,7 +151,12 @@ const TimeTable = ({t, navigation, props}) => {
  }, []);
 
  return (
+    <ScrollView
+    contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}
+    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+  >
   <View style={styles.container}>
+   
    { !isLogin  ? (
     <>
      <View style={styles.header}>
@@ -162,7 +207,9 @@ const TimeTable = ({t, navigation, props}) => {
      />
     </View>
    )}
+   
   </View>
+  </ScrollView>
  );
 };
 
